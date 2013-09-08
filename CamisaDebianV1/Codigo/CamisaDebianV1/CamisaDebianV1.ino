@@ -91,6 +91,10 @@ void loop() {
   case 19:
     E19_SuperEncendio();
     break;  
+  case 20:
+    E20_Dormir();
+    //return;
+    break;
 
   default:
     EEPROM.write(Aura,1);
@@ -141,13 +145,12 @@ void Leer(){
     if(BPresente > BPasado){
       EEPROM.write(Aura, EEPROM.read(Aura) + 1);
       cont = 0;
-      if( EEPROM.read(Aura) > TotalLed){
+      if( EEPROM.read(Aura) > TotalLed+1){
         EEPROM.write(Aura, 1);
       }
       t0 = t1;  
+      Pausar = 0;
     }
-    
-    
 
     BPasado = BPresente; 
 
@@ -159,11 +162,16 @@ void Leer(){
       for( int i = 0; i<20;i++){
         Actualizar();
       }
-      //if(BPresente == 1)
+      if(BPresente == 0){
+        Pausar++;
+      }
     }
 
   }
-  while( cont <= 3);
+  while( cont <= 3 && Pausar <= 2);
+  if (Pausar >= 2){
+    EEPROM.write(Aura, 20);
+  }
 }
 
 void E1_SuperPWM(){
@@ -519,3 +527,21 @@ void E19_SuperEncendio(){
   }
   while(digitalRead(0) == 1);
 }
+
+void E20_Dormir(){
+  Limpiar();
+  float t0 = millis();
+  do{
+     Limpiar();
+    Actualizar();
+  }
+  while(millis() - t0 < 1000);
+  
+  do{
+    
+    Actualizar();
+  }
+  while(digitalRead(0) == 1);
+}
+
+
