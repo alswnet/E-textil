@@ -1,4 +1,16 @@
 /*
+Estimaciones de corriente y tiempo de uso 
+
+Funcion desactivada
+50 mA 
+36 Horas con Bateria
+24 Horas con Bateria Recargable
+
+Funciones diversas 
+160 - 250 mA 
+7.4 Horas con Bateria
+4.8 Horas con Bateria Recargable
+
  Los estados del sitemas son 
  -  0 Programador
  -  1 Super PWM
@@ -20,6 +32,7 @@
  - 17 Randon
  - 18 Randon Lento
  - 19 Super Encendio
+ - 20 Dormir
  */
 
 #include <EEPROM.h>
@@ -27,16 +40,17 @@
 int TotalLed = 19;//Cantidad de LED
 //Posiciones temporales
 char Pin[19] = {
-  A5,A4,A3,A2,A1,A0,12,13,11,10,9,8,7,6,5,4,3,2,1};//Posiciones de led
+  0,A4,A2,A0,12,10,8,6,5,4,3,1,A5,A3,A1,13,11,9,7};//Posiciones de led
 char nivel[19];
 //Variable super importante
 int Aura = 7;
 int Frecuencia = 1;
+int BotonPower = 2;
 
 void setup() {
 
-  pinMode(0,INPUT);
-  digitalWrite(0,HIGH);
+  pinMode(BotonPower,INPUT);
+  digitalWrite(BotonPower,HIGH);
 
   for(int Led = 0; Led < TotalLed; Led++)
     pinMode(Pin[Led],OUTPUT);
@@ -93,7 +107,6 @@ void loop() {
     break;  
   case 20:
     E20_Dormir();
-    //return;
     break;
 
   default:
@@ -123,6 +136,7 @@ void Actualizar(){
 }//Enciende los led dependidendo del nivel que estes
 
 void Leer(){
+  
   Limpiar();
   Actualizar();
   byte cont = 0;
@@ -131,7 +145,7 @@ void Leer(){
   float t1 = t0;
   byte BPasado = 0;
   byte BPresente = 0; 
-  //digitalRead(0) == 1
+  
   do{
     if( t1 == t0){
       for( int Led = 0; Led < TotalLed; Led++){
@@ -140,12 +154,12 @@ void Leer(){
     }
 
     t1 = millis();
-    BPresente = digitalRead(0);
+    BPresente = digitalRead(BotonPower);
 
     if(BPresente > BPasado){
       EEPROM.write(Aura, EEPROM.read(Aura) + 1);
       cont = 0;
-      if( EEPROM.read(Aura) > TotalLed+1){
+      if( EEPROM.read(Aura) > TotalLed){
         EEPROM.write(Aura, 1);
       }
       t0 = t1;  
@@ -195,7 +209,7 @@ void E1_SuperPWM(){
     }
     Actualizar();
   }
-  while(digitalRead(0) == 1);
+  while(digitalRead(BotonPower) == 1);
 }//El primer esta un pwm de todos los LED
 
 void E2_SuperPendulo(){
@@ -227,7 +241,7 @@ void E2_SuperPendulo(){
 
 
   }
-  while(digitalRead(0) == 1);
+  while(digitalRead(BotonPower) == 1);
 }
 
 void E3_DoblePendulo(){
@@ -256,7 +270,7 @@ void E3_DoblePendulo(){
     t1 = millis();
     Actualizar();
   }
-  while(digitalRead(0) == 1);
+  while(digitalRead(BotonPower) == 1);
 }
 
 void E4_DoblePenduloModificado(){
@@ -297,7 +311,7 @@ void E4_DoblePenduloModificado(){
 
 
   }
-  while(digitalRead(0) == 1);
+  while(digitalRead(BotonPower) == 1);
 }
 
 
@@ -328,7 +342,7 @@ void E5_Ecualizador(){
     }
     Actualizar();
   }
-  while(digitalRead(0) == 1);
+  while(digitalRead(BotonPower) == 1);
 }
 
 void E6_EcualizadorRandon(){
@@ -357,7 +371,7 @@ void E6_EcualizadorRandon(){
     }
     Actualizar();
   }
-  while(digitalRead(0) == 1);
+  while(digitalRead(BotonPower) == 1);
 
 
 }
@@ -387,7 +401,7 @@ void E7_LasVegas(){
     }
 
   }
-  while(digitalRead(0) == 1);
+  while(digitalRead(BotonPower) == 1);
 }
 
 void E8_DiscoDisco(){
@@ -399,7 +413,7 @@ void E8_DiscoDisco(){
   do{
     Actualizar();
   }
-  while(digitalRead(0) == 1);
+  while(digitalRead(BotonPower) == 1);
 }//El primer esta un pwm de todos los LED
 
 void E9_Cometa(){
@@ -430,7 +444,7 @@ void E9_Cometa(){
     Actualizar();
 
   }
-  while(digitalRead(0) == 1);
+  while(digitalRead(BotonPower) == 1);
 
 }
 
@@ -463,12 +477,11 @@ void E10_CometaDoble(){
         y++;
       else
         y = 0;
-
     }
     Actualizar();
 
   }
-  while(digitalRead(0) == 1);
+  while(digitalRead(BotonPower) == 1);
 
 }
 
@@ -488,7 +501,7 @@ void E17_Randon(){
 
     Actualizar();
   }
-  while(digitalRead(0) == 1);
+  while(digitalRead(BotonPower) == 1);
 
 }
 
@@ -514,7 +527,7 @@ void E18_RandonLento(){
 
     Actualizar();
   }
-  while(digitalRead(0) == 1);
+  while(digitalRead(BotonPower) == 1);
 
 }
 
@@ -525,23 +538,24 @@ void E19_SuperEncendio(){
   do{
     Actualizar();
   }
-  while(digitalRead(0) == 1);
-}
+  while(digitalRead(BotonPower) == 1);
+}//Mantiene todos los led encendidos
 
 void E20_Dormir(){
   Limpiar();
   float t0 = millis();
   do{
-     Limpiar();
+    Limpiar();
     Actualizar();
   }
   while(millis() - t0 < 1000);
-  
+
   do{
-    
     Actualizar();
   }
-  while(digitalRead(0) == 1);
-}
+  while(digitalRead(BotonPower) == 1);
+  EEPROM.write(Aura, 0);
+}//Funcion que apaga todos los botones y espera para el boton para ativarlos
+
 
 
